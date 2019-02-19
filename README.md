@@ -131,7 +131,7 @@ In Shoptet's web admin, go to API Partner > Add-ons > select specific add-on > E
 
 <img width="895" alt="screenshot 2019-02-18 at 18 08 46" src="https://user-images.githubusercontent.com/101152/52973138-67833b80-33bd-11e9-9e0c-91e2656513c1.png">
 
-If you don't do this properly, in the next step, you'll see a response with an error like:
+⚠️ After you do this, go to the **Users** tab again and click **Add**. This has to be done every time endpoints are changed! If you don't do this, you'll see an error like this in the next step:
 
 > Your access token \"8faghr48u46kh2...\" has no defined rights for this resource.
 

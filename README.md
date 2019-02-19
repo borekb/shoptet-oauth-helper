@@ -94,6 +94,10 @@ In Shoptet admin, click **Create add-on** and enter the URL from above to the fi
 
 If everything was deployed correctly with the right environment variables, you should be able to go to the **Users** tab and click the test installation button.
 
+> 💡 **NOTE**
+> 
+> At this point, you should be able to use the short token printed on the **Users** tab as an API access token, however, it's not guaranteed to work in the future (this method is deprecated). So the rest of the document shows the full, proper workflow.
+
 ### Obtain OAuth access token
 
 When adding the test user, Shoptet will call the URL specified in the admin. The script is programmed to print something like this to *server logs*:

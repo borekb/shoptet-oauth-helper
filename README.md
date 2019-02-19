@@ -1,24 +1,41 @@
 # Shoptet API token helper
 
-To work with [Shoptet API](https://shoptet.docs.apiary.io/), one needs an "API access token":
+PHP script to obtain an OAuth access token to work with [Shoptet API](https://shoptet.docs.apiary.io/).
+
+## Why
+
+Shoptet's API is primarily meant to be used in a server-to-server scenario where an add-on lives one someone's server and communicates with Shoptet's servers. However, I wanted to tinker with the REST API via `curl` etc. and it was not entirely trivial so this is the documentation of the process.
+
+## How Shoptet's API authentication works
+
+To send requests to the API, one needs an _API access token_:
 
 ```http
 GET https://api.myshoptet.com/api/eshop
 Shoptet-Access-Token: <API access token>
 ```
 
-To get it, "OAuth access token" is needed:
+It can be requested from shop's `/action/ApiOAuthServer/getAccessToken` route but for that, one needs an _OAuth access token_:
 
 ```http
 GET https://example.myshoptet.com/action/ApiOAuthServer/getAccessToken
 Authorization: Bearer <OAuth acceess token>
 ```
 
-And this small PHP project implements an endpoint that Shoptet can call to negotiate the token.
+This token can only be negotiated when an add-on is installed and for that, a public endpoints must be provided that Shoptet can actively call.
 
-## Deploying the endpoint
+Follow the steps below to go through the whole process:
 
-The endpoint must be publicly available – Shoptet's servers will call it on add-on activation. Use one of the following options:
+1. [Deploy the endpoint](#deploy-the-endpoint)
+2. [Create Shoptet add-on](#create-shoptet-add-on)
+3. [Obtain "OAuth access token"](#obtain-oauth-access-token)
+4. [Request "API access token"](#request-api-access-token)
+5. [Enable specific APIs](#enable-specific-api-endpoints)
+6. [Work with the API](#-work-with-the-api)
+
+## Deploy the endpoint
+
+The endpoint, which is implemented in [`oauth-helper.php`](./oauth-helper.php), must be publicly available. Use one of the following options:
 
 1. Upload the script to your server
 2. Upload to ZEIT Now
@@ -30,7 +47,7 @@ Not much to add, just make sure the same environment variables as below are defi
 
 ### ZEIT Now
 
-Deploy to Now using something like:
+Deploy to Now with the following environment variables:
 
 ```
 now \
@@ -47,9 +64,9 @@ now alias <https://url-of-the-deployment> your-alias
 
 The URL you'll want to use in Shoptet admin is `https://your-alias.now.sh/oauth-helper.php`.
 
-### Run locally + ngrok tunnel
+### Local run + ngrok tunnel
 
-If you want to tinker with the PHP script, maybe the easiest is to run it locally and expose it to the internet via a service like [ngrok](https://ngrok.com/).
+In this scenario, the script runs locally as is made available to the internet via [ngrok](https://ngrok.com/).
 
 First, run ngrok:
 
@@ -57,7 +74,7 @@ First, run ngrok:
 ngrok http 8000
 ```
 
-It will give you an URL like `https://975d4afe.ngrok.io` which you'll put to Shoptet admin and as a `REDIRECT_URL` below. Note that we'll start the site on port 8000 to match what we told ngrok above:
+It will give you an URL like `https://975d4afe.ngrok.io` which will be the base for the value you put to the `REDIRECT_URL`. In this example, we'll start the PHP script in a Docker container but something like built-in PHP server would work as well. Note that the port must be 8000 to match the above.
 
 ```
 docker run --rm \
@@ -75,7 +92,7 @@ In Shoptet admin, click Create add-on and enter the URL from above to the field 
 
 If everything was deployed correctly with the right environment variables, you should be able to go to the Users tab and click the test installation button.
 
-## Obtaining the "OAuth access token"
+## Obtain "OAuth access token"
 
 When adding the test user, Shoptet will call the URL specified in the admin. The script is programmed to print something like this **to server logs**:
 
@@ -94,7 +111,7 @@ Send a request to `/getAccessToken` endpoints of Shoptet's API, for example:
 ```
 curl \
   -H 'Authorization: Bearer <OAuth access token>' \
-  https://versionpress.myshoptet.com/action/ApiOAuthServer/getAccessToken
+  https://yourshop.myshoptet.com/action/ApiOAuthServer/getAccessToken
 ```
 
 The response will be something like:
@@ -106,11 +123,25 @@ The response will be something like:
 }
 ```
 
-You now have 30 minutes to make requests with this token. For example:
+You now have 30 minutes to make requests with this token. But first, you need to enable specific endpoints:
+
+## Enable specific API endpoints
+
+In Shoptet's web admin, go to API Partner > Add-ons > select specific add-on > Endpoints and enable specific endpoints you want to enable. To enable the whole API, enable each endpoints one by one.
+
+<img width="895" alt="screenshot 2019-02-18 at 18 08 46" src="https://user-images.githubusercontent.com/101152/52973138-67833b80-33bd-11e9-9e0c-91e2656513c1.png">
+
+If you don't do this properly, in the next step, you'll see a response with an error like:
+
+> Your access token \"8faghr48u46kh2...\" has no defined rights for this resource.
+
+## 🎉 Work with the API
+
+For example:
 
 ```
 curl \
   -H 'Shoptet-Access-Token: 8faghr48u46kh2...' \
   -H 'Content-Type: application/vnd.shoptet.v1.0' \
-  https://yourshop.myshoptet.com/api/eshop
+  https://api.myshoptet.com/api/eshop
 ```

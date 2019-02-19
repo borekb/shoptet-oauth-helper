@@ -88,7 +88,7 @@ docker run --rm \
   php:apache
 ```
 
-#### Create Shoptet add-on
+### Create Shoptet add-on
 
 In Shoptet admin, click **Create add-on** and enter the URL from above to the field labeled **Address to get your OAuth code**.
 

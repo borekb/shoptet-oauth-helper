@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "name": "shoptet-oauth-helper",
+  "alias": "bb-shoptet-oauth-helper",
+  "builds": [
+    { "src": "*.php", "use": "@now/php" }
+  ]
+}
